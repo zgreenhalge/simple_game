@@ -4,9 +4,9 @@
                                              
 public class Character{
 
-	private int BASEATT, BASEDEF, BASESPD, BASEHP, BASEMAG, BASEMANA; //NO PUBLIC SETTER FOR BASE STATS
-	private store hp, level, exp, att, def, spd, mag, mp
-	private String name;	
+	private int level, exp, BASEATT, BASEDEF, BASESPD, BASEHP, BASEMAG, BASEMANA; //NO PUBLIC SETTER FOR BASE STATS
+	private Store[] stats = new Store[6](); // hp, mana, att, mag, def, spd,
+	private int[] BASESTATS = new int[8];
 	private Random gen;
 	private Ability[] abl;
 	private int[] expTable = {5,20,60,120,250}; //EXP REQUIRED TO LEVEL UP
@@ -18,28 +18,47 @@ public class Character{
 		gen = new Random(System.nanoTime());
 		exp=0;
 		BASEHP = hp = 20+gen.nextInt(11);
-		BASEATT = att = 5+gen.nextInt(6);
-		BASEDEF = def = 1+gen.nextInt(5);
-		BASESPD = spd = 1+gen.nextInt(5);
-		BASEMAG = mag = 1+gen.nextInt(8);
-		BASEMANA = mana = 10+gen.nextInt(6)
+		BASEATT = 5+gen.nextInt(6);
+		BASEDEF = 1+gen.nextInt(5);
+		BASESPD = 1+gen.nextInt(5);
+		BASEMAG = 1+gen.nextInt(8);
+		BASEMANA = 10+gen.nextInt(6)
+		loadStatArrays();
 		abl= Ability.default(this);  //LOADS DEFAULT ABILITIES
 	}
 
 	//ROBUST CHARACTER CONSTRUCTOR
-	public Character(String n, int l, int e, int h, int a, int d, int s, int m, int mn Ability[] ab){
+	public Character(String n, int l, int e, int h, int mn, int a, int m, int d, int s, Ability[] ab){
 		name=n;
 		level=l;
 		exp=e;
 		BASEHP = hp = h;
-		BASEATT = att = a;
-		BASEDEF = def = d;
-		BASESPD = spd = s;
-		BASEMAG = mag = m;
+		BASEATT = a;
+		BASEDEF = d;
+		BASESPD = s;
+		BASEMAG = m;
 		BASEMANA = mana = mn
 		gen = new Random(System.nanoTime());
 		abl=ab;
+		loadStatArrays();
 		abilityOwner();
+	}
+	
+	private void loadStatArrays(){
+		stats[0]= new Store(BASEHP);
+		stats[1]= new Store(BASEMANA);
+		stats[2]= new Store(BASEATT);
+		stats[3]= new Store(BASEMAG);
+		stats[4]= new Store(BASEDEF);
+		stats[5]= new Store(BASESPD);
+		BASESTATS[0]=BASEHP;
+		BASESTATS[1]=BASEMANA;
+		BASESTATS[2]=BASEATT;
+		BASESTATS[3]=BASEMAG;
+		BASESTATS[4]=BASEDEF;
+		BASESTATS[5]=BASESPD;
+		BASESTATS[6]=level;
+		BASESTATS[7]=exp;
 	}
 	
 	//USE FIRST ABILITY
@@ -70,46 +89,50 @@ public class Character{
 
 	//PUBLIC GETTER
 	public int getAttack(){
-		return att;
+		return stats[2];
 	}
 
 	//PUBLIC GETTER
 	public int getDefense(){
-		return def;
+		return stats[4];
 	}
 
 	//PUBLIC GETTER
 	public int getSpeed(){
-		return spd;
+		return stats[5];
 	}
 
 	//PUBLIC GETTER
 	public int getExperience(){
-		return exp;
+		return BASESTATS[7];
 	}
 
 	//PUBLIC GETTER FOR %exp
 	public int getExpPrcnt(){
-		return (int) exp/expTable[level-1];
+		return (int) BASESTATS[7]/expTable[level-1];
 
 	//PUBLIC GETTER
 	public int getHP(){
-		return hp;
+		return stats[0];
+	}
+	
+	public int getMaxHP(){
+		return BASESTATS[0];
 	}
 
 	//PUBLIC GETTER
 	public int getLevel(){
-		return level;
+		return BASESTATS[6];
 	}
 
 	//PUBLIC GETTER
 	public int getMagic(){
-		return mag;
+		return stats[3];
 	}
 
 	//PUBLIC GETTER
 	public int getMana(){
-		retrun mana;
+		retrun stats[1];
 	}
 
 	//PUBLIC GETTER FOR BASE STAT
