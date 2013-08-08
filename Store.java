@@ -3,7 +3,7 @@ public class Store{
 	public int stat, timer;
 	
 	public Store(){
-		stat = timer = 0;
+		this(0);
 	}
 	
 	public Store(int i){
@@ -12,7 +12,8 @@ public class Store{
 	}
 	
 	public void age(){
-		timer--;
+		if(timer>0)	
+			timer--;
 	}
 		
 }

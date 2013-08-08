@@ -1,8 +1,11 @@
+import java.util.*;
+
 public class Character{
 
 	private int level, exp, BASEATT, BASEDEF, BASESPD, BASEHP, BASEMAG, BASEMANA, BASERES, hp, mana, att, mag, def, spd, res; //NO PUBLIC SETTER FOR BASE STATS
-	private Store[] stats = new Store[7](); // hp, mana, att, mag, def, spd,
+	private Store[] stats = new Store[7]; // hp, mana, att, mag, def, spd,
 	private int[] BASESTATS = new int[9];
+	private ArrayList<StatusEffect> status = new ArrayList<StatusEffect>();
 	private Random gen;
 	private Ability[] abl;
 	private int[] expTable = {5,20,60,120,250}; //EXP REQUIRED TO LEVEL UP
@@ -10,8 +13,9 @@ public class Character{
 	
 	
 	//BASIC RANDOM CHARACTER CONSTRUCTOR
-	public Character(String n){ 
-		charName=n;
+	public Character(){ 
+		charName="Unknown Hero";
+		charClass="Unknown";
 		level=1;
 		gen = new Random(System.nanoTime());
 		exp=0;
@@ -23,12 +27,23 @@ public class Character{
 		BASEMANA = mana = 10+gen.nextInt(6);
 		BASERES = res = 1+gen.nextInt(5);
 		loadStatArrays();
-		abl= Ability.default(this);  //LOADS DEFAULT ABILITIES
+		abl[0] = new Attack(this);
+		abl[1] = new Defend(this);
+		abl[2] = new Throw(this);
+		abl[3] = new Rest(this);
 	}
-
-	//ROBUST CHARACTER CONSTRUCTOR
-	public Character(String n, int l, int e, int h, int mn, int a, int d, int m, int r, int s, Ability[] ab){
+	
+	//CONSTRUCTOR ALLOWING RANDOM NAMED CHARACTERS
+	public Character(String n, String c){
+		this();
 		charName=n;
+		charClass=c;
+	}
+	
+	//ROBUST CHARACTER CONSTRUCTOR
+	public Character(String n, String c, int l, int e, int h, int mn, int a, int d, int m, int r, int s, Ability[] ab){
+		charName=n;
+		charClass=c;
 		level=l;
 		exp=e;
 		BASEHP = hp = h;
@@ -44,6 +59,7 @@ public class Character{
 		abilityOwner();
 	}
 	
+	//PUTS ALL STATS INTO ARRAYS, CALLED IN CONSTRUCTOR
 	private void loadStatArrays(){
 		stats[0]= new Store(BASEHP);
 		stats[1]= new Store(BASEMANA);
@@ -63,14 +79,22 @@ public class Character{
 		BASESTATS[8]=exp;
 	}
 	
-	//END OF TURN
+	//END OF TURN, RESPONSIBLE FOR AGING STATS
 	public boolean age(){
 		updateStats();
 		for(Store s: stats)
 			s.age();
+		for(StatusEffect s: status)
+			s.age();
+		hp += (int) hp*.05;
+		mana += (int) mana*.15;
+		if(mana>BASEMANA)
+			mana=BASEMANA;
+		if(hp>BASEHP)
+			hp=BASEHP;
 		return hp>0;
 	}
-	
+	//UPDATES STATS[] WITH NEWEST STATS
 	public void updateStats(){
 		stats[0].stat=hp;
 		stats[1].stat=mana;
@@ -79,72 +103,98 @@ public class Character{
 		stats[4].stat=mag;
 		stats[5].stat=res;
 		stats[6].stat=spd;
+		BASESTATS[0]=BASEHP;
+		BASESTATS[1]=BASEMANA;
+		BASESTATS[2]=BASEATT;
+		BASESTATS[3]=BASEDEF;
+		BASESTATS[4]=BASEMAG;
+		BASESTATS[5]=BASERES;
+		BASESTATS[6]=BASESPD;
+		BASESTATS[7]=level;
+		BASESTATS[8]=exp;
 	}
 	
+	//CONVERTS STATS TO STRING
 	public String toString(){
-		String s = charName + " the " + charClass;
+		String s = title();
 		s += "\nLevel: " + level + "Exp: " + exp + "(" + getExpPercent() + "%)";
 		s += "\nHP: " + hp + "/" + BASEHP + "  Mana: " + mana + "/" + BASEMANA;
 		s += "\nAtt: " + att + "   Def: " + def;
 		s += "\nMag: " + mag + "   Res: " + res;
-		s += "\nSpeed: " + spd;
+		s += "\nSpeed: " + spd;	
+		return s;	
+	}
+	
+	//GIVES CHARACTERS TITLE
+	public String title(){
+		return charName + " the " + charClass;
+	}
 		
-		
-		
+	public boolean addEffect(StatusEffect s){
+		if(status.contains(s))
+			return false;
+		status.add(s);
+		return true;
 	}
 
 	//SETS CHARACTER AS OWNER OF ABILITES
-	public boolean abilityOwner(){
+	public void abilityOwner(){
 		for(Ability a: abl)
 			a.setOwner(this);
 	}
 
 	//PUBLIC GETTER
 	public int getAttack(){
-		return stats[2];
+		return att;
 	}
 
 	//PUBLIC GETTER
 	public int getDefense(){
-		return stats[4];
+		return def;
 	}
 
 	//PUBLIC GETTER
 	public int getSpeed(){
-		return stats[5];
+		return spd;
 	}
 
 	//PUBLIC GETTER
 	public int getExperience(){
-		return BASESTATS[7];
+		return exp;
 	}
 
 	//PUBLIC GETTER FOR %exp
-	public int getExpPrcnt(){
+	public int getExpPercent(){
 		return (int) ((exp/expTable[level-1])*10);
+	}
+	
+	//GIVES EXPERIENCE REQUIRED FOR LEVEL UP
+	public int getReqExp(){
+		return expTable[level-1];
+	}
 
 	//PUBLIC GETTER
 	public int getHP(){
-		return stats[0];
+		return hp;
 	}
 	
 	public int getMaxHP(){
-		return BASESTATS[0];
+		return BASEHP;
 	}
 
 	//PUBLIC GETTER
 	public int getLevel(){
-		return BASESTATS[6];
+		return level;
 	}
 
 	//PUBLIC GETTER
 	public int getMagic(){
-		return stats[3];
+		return mag;
 	}
 
 	//PUBLIC GETTER
 	public int getMana(){
-		retrun stats[1];
+		return mana;
 	}
 
 	//PUBLIC GETTER FOR BASE STAT
@@ -209,7 +259,7 @@ public class Character{
 	//SHOULD ONLY RETURN FALSE IF ABOVE LEVEL CAP OF CHARACTER
 	public boolean setLevel(int l){
 		while(l<level)
-			if(!levelUp())
+			if(!levelUp(false))
 				return false;
 		return true;
 	}
@@ -241,9 +291,9 @@ public class Character{
 	//RETURNS EXP TO NEXT LEVEL, CAPS EXP AT MAX LEVEL
 	public long gainExperience(int g){
 		exp+=g;
-		if(level<expTable.length())
+		if(level<expTable.length)
 			if(exp>=expTable[level-1])
-				levelUp();
+				levelUp(true);
 		if(exp>=expTable[level-1])
 			exp=expTable[level-1];
 	return expTable[level-1]-exp;
@@ -251,9 +301,12 @@ public class Character{
 
 	//HANDLES LEVEL UP LOGIC
 	//RETURNS FALSE IF MAX LEVEL
-	public boolean levelUp(){
-		if(level==expTable.length())
+	public boolean levelUp(boolean verbose){
+		if(level==expTable.length)
 			return false;
+		if(verbose){
+			//print out stat changes
+		}
 		level+=1;	
 		exp=0;
 		int gain;
