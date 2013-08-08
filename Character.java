@@ -1,43 +1,43 @@
-                                                                     
-                                                                     
-                                                                     
-                                             
 public class Character{
 
-	private int level, exp, BASEATT, BASEDEF, BASESPD, BASEHP, BASEMAG, BASEMANA; //NO PUBLIC SETTER FOR BASE STATS
-	private Store[] stats = new Store[6](); // hp, mana, att, mag, def, spd,
-	private int[] BASESTATS = new int[8];
+	private int level, exp, BASEATT, BASEDEF, BASESPD, BASEHP, BASEMAG, BASEMANA, BASERES, hp, mana, att, mag, def, spd, res; //NO PUBLIC SETTER FOR BASE STATS
+	private Store[] stats = new Store[7](); // hp, mana, att, mag, def, spd,
+	private int[] BASESTATS = new int[9];
 	private Random gen;
 	private Ability[] abl;
 	private int[] expTable = {5,20,60,120,250}; //EXP REQUIRED TO LEVEL UP
-
+	private String charName, charClass;
+	
+	
 	//BASIC RANDOM CHARACTER CONSTRUCTOR
 	public Character(String n){ 
-		name=n;
+		charName=n;
 		level=1;
 		gen = new Random(System.nanoTime());
 		exp=0;
 		BASEHP = hp = 20+gen.nextInt(11);
-		BASEATT = 5+gen.nextInt(6);
-		BASEDEF = 1+gen.nextInt(5);
-		BASESPD = 1+gen.nextInt(5);
-		BASEMAG = 1+gen.nextInt(8);
-		BASEMANA = 10+gen.nextInt(6)
+		BASEATT = att = 5+gen.nextInt(6);
+		BASEDEF = def = 1+gen.nextInt(5);
+		BASESPD = spd = 1+gen.nextInt(5);
+		BASEMAG = mag = 1+gen.nextInt(8);
+		BASEMANA = mana = 10+gen.nextInt(6);
+		BASERES = res = 1+gen.nextInt(5);
 		loadStatArrays();
 		abl= Ability.default(this);  //LOADS DEFAULT ABILITIES
 	}
 
 	//ROBUST CHARACTER CONSTRUCTOR
-	public Character(String n, int l, int e, int h, int mn, int a, int m, int d, int s, Ability[] ab){
-		name=n;
+	public Character(String n, int l, int e, int h, int mn, int a, int d, int m, int r, int s, Ability[] ab){
+		charName=n;
 		level=l;
 		exp=e;
 		BASEHP = hp = h;
-		BASEATT = a;
-		BASEDEF = d;
-		BASESPD = s;
-		BASEMAG = m;
-		BASEMANA = mana = mn
+		BASEATT = att = a;
+		BASEDEF = def = d;
+		BASESPD = spd = s;
+		BASEMAG = mag = m;
+		BASEMANA = mana = mn;
+		BASERES = res = r;
 		gen = new Random(System.nanoTime());
 		abl=ab;
 		loadStatArrays();
@@ -48,37 +48,49 @@ public class Character{
 		stats[0]= new Store(BASEHP);
 		stats[1]= new Store(BASEMANA);
 		stats[2]= new Store(BASEATT);
-		stats[3]= new Store(BASEMAG);
-		stats[4]= new Store(BASEDEF);
-		stats[5]= new Store(BASESPD);
+		stats[3]= new Store(BASEDEF);
+		stats[4]= new Store(BASEMAG);
+		stats[5]= new Store(BASERES);
+		stats[6]= new Store(BASESPD);
 		BASESTATS[0]=BASEHP;
 		BASESTATS[1]=BASEMANA;
 		BASESTATS[2]=BASEATT;
-		BASESTATS[3]=BASEMAG;
-		BASESTATS[4]=BASEDEF;
-		BASESTATS[5]=BASESPD;
-		BASESTATS[6]=level;
-		BASESTATS[7]=exp;
+		BASESTATS[3]=BASEDEF;
+		BASESTATS[4]=BASEMAG;
+		BASESTATS[5]=BASERES;
+		BASESTATS[6]=BASESPD;
+		BASESTATS[7]=level;
+		BASESTATS[8]=exp;
 	}
 	
-	//USE FIRST ABILITY
-	public boolean useAbility1(Character target){ 
-		return abl[0].activate(target);		
+	//END OF TURN
+	public boolean age(){
+		updateStats();
+		for(Store s: stats)
+			s.age();
+		return hp>0;
 	}
 	
-	//USE SECOND ABILITY
-	public boolean useAbility2(Character target){
-		return abl[1].activate(target);		
+	public void updateStats(){
+		stats[0].stat=hp;
+		stats[1].stat=mana;
+		stats[2].stat=att;
+		stats[3].stat=def;
+		stats[4].stat=mag;
+		stats[5].stat=res;
+		stats[6].stat=spd;
 	}
-
-	//USE THIRD ABILITY
-	public boolean useAbility3(Character target){
-		return abl[2].activate(target);		
-	}
-
-	//USE FOURTH ABILITY
-	public boolean useAbility4(Character target){
-		return abl[3].activate(target);		
+	
+	public String toString(){
+		String s = charName + " the " + charClass;
+		s += "\nLevel: " + level + "Exp: " + exp + "(" + getExpPercent() + "%)";
+		s += "\nHP: " + hp + "/" + BASEHP + "  Mana: " + mana + "/" + BASEMANA;
+		s += "\nAtt: " + att + "   Def: " + def;
+		s += "\nMag: " + mag + "   Res: " + res;
+		s += "\nSpeed: " + spd;
+		
+		
+		
 	}
 
 	//SETS CHARACTER AS OWNER OF ABILITES
@@ -109,7 +121,7 @@ public class Character{
 
 	//PUBLIC GETTER FOR %exp
 	public int getExpPrcnt(){
-		return (int) BASESTATS[7]/expTable[level-1];
+		return (int) ((exp/expTable[level-1])*10);
 
 	//PUBLIC GETTER
 	public int getHP(){
