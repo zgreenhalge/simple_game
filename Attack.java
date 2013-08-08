@@ -26,7 +26,7 @@ public class Attack extends Ability{
 				owner.modHP((int) (dmg*(-0.3)));
 		if( (float) (owner.getSpeed()/30) < crit.nextFloat() )	//CRIT 
 			dmg=dmg*3;
-		if(c.modHP(-dmg)==0)							//KILL
+		if(c.modHP(-dmg)==0)							//DO DAMAGE AND CHECK DEATH
 			experience(c, false);
 		else
 			experience(c, true);

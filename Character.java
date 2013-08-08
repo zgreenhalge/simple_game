@@ -86,7 +86,8 @@ public class Character{
 			s.age();
 		for(StatusEffect s: status)
 			s.age();
-		hp += (int) hp*.05;
+		if(hp>0)
+			hp += (int) hp*.05;
 		mana += (int) mana*.15;
 		if(mana>BASEMANA)
 			mana=BASEMANA;
@@ -125,13 +126,14 @@ public class Character{
 		return s;	
 	}
 	
-	//GIVES CHARACTERS TITLE
+	//RETURNS CHARACTERS TITLE
 	public String title(){
 		return charName + " the " + charClass;
 	}
 		
+	//ADD STATUS EFFECTS TO CHARACTER
 	public boolean addEffect(StatusEffect s){
-		if(status.contains(s))
+		if(status.contains(s))		//DISALLOWS STACKING OF EFFECTS
 			return false;
 		status.add(s);
 		return true;
