@@ -1,19 +1,20 @@
 public class Store{
 
-	public int stat, timer;
+	public int BASE, stat, timer;
 	
 	public Store(){
 		this(0);
 	}
 	
 	public Store(int i){
-		stat = i;
+		stat = BASE = i;
 		timer=0;
 	}
 	
-	public void age(){
+	public int age(){
 		if(timer>0)	
 			timer--;
+		return timer;
 	}
 		
 }

@@ -2,10 +2,11 @@ import java.util.*;
 
 public class Character{
 
-	private int level, exp, BASEATT, BASEDEF, BASESPD, BASEHP, BASEMAG, BASEMANA, BASERES, hp, mana, att, mag, def, spd, res; //NO PUBLIC SETTER FOR BASE STATS
+	private int wallet, level, exp;
+	private Store hp, mana, att, mag, def, spd, res;
 	private Store[] stats = new Store[7]; // hp, mana, att, mag, def, spd,
-	private int[] BASESTATS = new int[9];
 	private ArrayList<StatusEffect> status = new ArrayList<StatusEffect>();
+	private ArrayList<Item> inventory = new ArrayList<Item>();
 	private Random gen;
 	private Ability[] abl;
 	private int[] expTable = {5,20,60,120,250}; //EXP REQUIRED TO LEVEL UP
@@ -19,14 +20,14 @@ public class Character{
 		level=1;
 		gen = new Random(System.nanoTime());
 		exp=0;
-		BASEHP = hp = 20+gen.nextInt(11);
-		BASEATT = att = 5+gen.nextInt(6);
-		BASEDEF = def = 1+gen.nextInt(5);
-		BASESPD = spd = 1+gen.nextInt(5);
-		BASEMAG = mag = 1+gen.nextInt(8);
-		BASEMANA = mana = 10+gen.nextInt(6);
-		BASERES = res = 1+gen.nextInt(5);
-		loadStatArrays();
+		hp = new Store(20+gen.nextInt(11));
+		att = new Store(5+gen.nextInt(6));
+		def = new Store(1+gen.nextInt(5));
+		spd = new Store(1+gen.nextInt(5));
+		mag = new Store(1+gen.nextInt(8));
+		mana = new Store(10+gen.nextInt(6));
+		res = new Store(1+gen.nextInt(5));
+		updateStats();
 		abl[0] = new Attack(this);
 		abl[1] = new Defend(this);
 		abl[2] = new Throw(this);
@@ -46,83 +47,82 @@ public class Character{
 		charClass=c;
 		level=l;
 		exp=e;
-		BASEHP = hp = h;
-		BASEATT = att = a;
-		BASEDEF = def = d;
-		BASESPD = spd = s;
-		BASEMAG = mag = m;
-		BASEMANA = mana = mn;
-		BASERES = res = r;
+		hp = new Store(h);
+		att = new Store(a);
+		def = new Store(d);
+		spd = new Store(s);
+		mag = new Store(m);
+		mana = new Store(mn);
+		res = new Store(r);
 		gen = new Random(System.nanoTime());
 		abl=ab;
-		loadStatArrays();
+		updateStats();
 		abilityOwner();
 	}
 	
 	//PUTS ALL STATS INTO ARRAYS, CALLED IN CONSTRUCTOR
-	private void loadStatArrays(){
-		stats[0]= new Store(BASEHP);
-		stats[1]= new Store(BASEMANA);
-		stats[2]= new Store(BASEATT);
-		stats[3]= new Store(BASEDEF);
-		stats[4]= new Store(BASEMAG);
-		stats[5]= new Store(BASERES);
-		stats[6]= new Store(BASESPD);
-		BASESTATS[0]=BASEHP;
-		BASESTATS[1]=BASEMANA;
-		BASESTATS[2]=BASEATT;
-		BASESTATS[3]=BASEDEF;
-		BASESTATS[4]=BASEMAG;
-		BASESTATS[5]=BASERES;
-		BASESTATS[6]=BASESPD;
-		BASESTATS[7]=level;
-		BASESTATS[8]=exp;
+	private void updateStats(){
+		stats[0]= hp;
+		stats[1]= mana;
+		stats[2]= att;
+		stats[3]= def;
+		stats[4]= mag;
+		stats[5]= res;
+		stats[6]= spd;
 	}
 	
 	//END OF TURN, RESPONSIBLE FOR AGING STATS
 	public boolean age(){
-		updateStats();
+		int regen= (int) (hp.BASE*0.05);
 		for(Store s: stats)
-			s.age();
+			if(s.age()==0)
+				s.stat=s.BASE;
 		for(StatusEffect s: status)
 			s.age();
-		if(hp>0)
-			hp += (int) hp*.05;
-		mana += (int) mana*.15;
-		if(mana>BASEMANA)
-			mana=BASEMANA;
-		if(hp>BASEHP)
-			hp=BASEHP;
-		return hp>0;
+		if(hp.stat>0){
+			for(Item i: inventory)
+				if(i.affects().equals("HPregen"))
+					regen = i.effect(regen);
+			hp.stat += regen;
+		}
+		regen = (int) (mana.BASE*0.15);
+		for(Item i: inventory)
+				if(i.affects().equals("MPregen"))
+					regen = i.effect(regen);
+		mana.stat += regen;
+		if(mana.stat>getMAXMANA())
+			mana.stat=getMAXMANA();
+		if(hp.stat>getMAXHP())
+			hp.stat=getMAXHP();
+		return hp.stat>0;
 	}
-	//UPDATES STATS[] WITH NEWEST STATS
-	public void updateStats(){
-		stats[0].stat=hp;
-		stats[1].stat=mana;
-		stats[2].stat=att;
-		stats[3].stat=def;
-		stats[4].stat=mag;
-		stats[5].stat=res;
-		stats[6].stat=spd;
-		BASESTATS[0]=BASEHP;
-		BASESTATS[1]=BASEMANA;
-		BASESTATS[2]=BASEATT;
-		BASESTATS[3]=BASEDEF;
-		BASESTATS[4]=BASEMAG;
-		BASESTATS[5]=BASERES;
-		BASESTATS[6]=BASESPD;
-		BASESTATS[7]=level;
-		BASESTATS[8]=exp;
-	}
+
 	
-	//CONVERTS STATS TO STRING
+	//CONVERTS STATS TO STRING, SHOWING STAT CHANGES
 	public String toString(){
 		String s = title();
 		s += "\nLevel: " + level + "Exp: " + exp + "(" + getExpPercent() + "%)";
-		s += "\nHP: " + hp + "/" + BASEHP + "  Mana: " + mana + "/" + BASEMANA;
-		s += "\nAtt: " + att + "   Def: " + def;
-		s += "\nMag: " + mag + "   Res: " + res;
-		s += "\nSpeed: " + spd;	
+		s += "\nHP: " + hp.stat + "/" + getMAXHP() + "  Mana: " + mana.stat + "/" + getMAXMANA();
+		if(getAttack()<att.BASE)
+			s += "\nAtt: " + att.BASE + "(-" + (att.BASE - getAttack()) +")";
+		else
+			s += "\nAtt: " + att.BASE + "(+" + (getAttack() - att.BASE)+ ")";
+		if(getDefense()<def.BASE)
+			s += "   Def: " + def.BASE + "(-" + (def.BASE - getDefense()) + ")";
+		else
+			s += "   Def: " + def.BASE + "(+" + (getDefense() - def.BASE) + ")";
+		if(getMagic()<mag.BASE)
+			s += "\nMag: " + mag.BASE + "(-" + (mag.BASE - getMagic()) + ")";
+		else
+			s += "\nMag: " + mag.BASE + "(+" + (getMagic() - mag.BASE) + ")";
+		if(getResistance()<res.BASE)
+			s += "   Res: " + res.BASE + "(-" + (res.BASE - getResistance()) + ")";
+		else
+			s += "   Res: " + res.BASE + "(+" + (getResistance() - res.BASE) + ")";
+		if(getSpeed()<spd.BASE)
+			s += "\nSpeed: " + spd.BASE + "(-" + (spd.BASE - getSpeed()) + ")";
+		else
+			s += "\nSpeed: " + spd.BASE + "(+" + (getSpeed() - spd.BASE) + ")";
 		return s;	
 	}
 	
@@ -147,17 +147,38 @@ public class Character{
 
 	//PUBLIC GETTER
 	public int getAttack(){
-		return att;
+		int ret = att.stat;
+		for(Item i: inventory)
+			if(i.affects().equals("att"))
+				ret = i.effect(ret);
+		return ret;
 	}
 
 	//PUBLIC GETTER
 	public int getDefense(){
-		return def;
+		int ret = def.stat;
+		for(Item i: inventory)
+			if(i.affects().equals("def"))
+				ret = i.effect(ret);
+		return ret;
 	}
 
 	//PUBLIC GETTER
 	public int getSpeed(){
-		return spd;
+		int ret = spd.stat;
+		for(Item i: inventory)
+			if(i.affects().equals("spd"))
+				ret = i.effect(ret);
+		return ret;
+	}
+	
+	//PUBLIC GETTER
+	public int getResistance(){
+		int ret = res.stat;
+		for(Item i: inventory)
+			if(i.affects().equals("res"))
+				ret = i.effect(ret);
+		return ret;
 	}
 
 	//PUBLIC GETTER
@@ -177,11 +198,16 @@ public class Character{
 
 	//PUBLIC GETTER
 	public int getHP(){
-		return hp;
+		return hp.stat;
 	}
 	
-	public int getMaxHP(){
-		return BASEHP;
+	//PUBLIC GETTER
+	public int getMAXHP(){
+		int ret = hp.BASE;
+		for(Item i: inventory)
+			if(i.affects().equals("MAXHP"))
+				ret = i.effect(ret);
+		return ret;
 	}
 
 	//PUBLIC GETTER
@@ -191,70 +217,54 @@ public class Character{
 
 	//PUBLIC GETTER
 	public int getMagic(){
-		return mag;
+		int ret = mag.stat;
+		for(Item i: inventory)
+			if(i.affects().equals("mag"))
+				ret = i.effect(ret);
+		return ret;
 	}
 
 	//PUBLIC GETTER
 	public int getMana(){
-		return mana;
+		return mana.stat;
 	}
 
-	//PUBLIC GETTER FOR BASE STAT
-	public int getBASEMAG(){
-		return BASEMAG;
+	//PUBLIC GETTER
+	public int getMAXMANA(){
+		int ret = mana.BASE;
+		for(Item i: inventory)
+			if(i.affects().equals("MAXMANA"))
+				ret = i.effect(mana.BASE);
+		return ret;
 	}
 
-	//PUBLIC GETTER FOR BASE STAT
-	public int getBASEMANA(){
-		return BASEMANA;
-	}
-
-	//PUBLIC GETTER FOR BASE STAT
-	public int getBASEHP(){
-		return BASEHP;
-	}
-
-	//PUBLIC GETTER FOR BASE STAT
-	public int getBASEATT(){
-		return BASEATT;
-	}
-
-	//PUBLIC GETTER FOR BASE STAT
-	public int getBASEDEF(){
-		return BASEDEF;	
-	}
-
-	//PUBLIC GETTER FOR BASE STAT
-	public int getBASESPD(){
-		return BASESPD;
-	}
 
 	//PUBLIC MODIFIER
 	public int modHP(int x){
-		hp+=x;
-		if(hp>BASEHP)
-			hp=BASEHP;
-		if(hp<0)
-			hp=0;
-		return hp;
+		hp.stat+=x;
+		if(hp.stat>getMAXHP())
+			hp.stat=getMAXHP();
+		if(hp.stat<0)
+			hp.stat=0;
+		return hp.stat;
 	}
 	
 	//PUBLIC SETTER
 	public int setMagic(int x){
-		mag=x;
-		if(mag<0)
-			mag=0;
-		return mag;
+		mag.stat=x;
+		if(mag.stat<0)
+			mag.stat=0;
+		return mag.stat;
 	}
 
 	//PUBLIC MODIFIER
 	public int modMana(int x){
-		mana+=x;
-		if(mana>BASEMANA)
-			mana=BASEMANA;
-		if(mana<0)
-			mana=0;
-		return mana;
+		mana.stat+=x;
+		if(mana.stat>getMAXMANA())
+			mana.stat=getMAXMANA();
+		if(mana.stat<0)
+			mana.stat=0;
+		return mana.stat;
 	}
 
 	//PUBLIC SETTER, WILL SCALE CHARACTER UP TO A CERTAIN LEVEL
@@ -266,29 +276,6 @@ public class Character{
 		return true;
 	}
 
-	//PUBLIC SETTER
-	public int setAttack(int x){
-		att=x;
-		if(att<0)
-			att=0;
-		return att;
-	}
-	
-	//PUBLIC SETTER
-	public int setDefense(int x){
-		def=x;
-		if(def<0)
-			def=0;
-		return def;
-	}
-	
-	//PUBLIC SETTER
-	public int setSpeed(int x){
-		spd=x;
-		if(spd<0)
-			spd=0;
-		return spd;
-	}
 
 	//RETURNS EXP TO NEXT LEVEL, CAPS EXP AT MAX LEVEL
 	public long gainExperience(int g){
@@ -313,17 +300,17 @@ public class Character{
 		exp=0;
 		int gain;
 		gain=2+gen.nextInt(4);
-			BASEHP+=gain; hp+=gain;
+			hp.BASE+=gain; hp.stat+=gain;
 		gain=1+gen.nextInt(2);
-			BASEATT+=gain;att+=gain;
+			att.BASE+=gain;att.stat+=gain;
 		gain=1+gen.nextInt(2);
-			BASEDEF+=gain;def+=gain;
+			def.BASE+=gain;def.stat+=gain;
 		gain=1+gen.nextInt(2);
-			BASESPD+=gain;spd+=gain;
+			spd.BASE+=gain;spd.stat+=gain;
 		gain=1+gen.nextInt(4);
-			BASEMAG+=gain;mag+=gain;
+			mag.BASE+=gain;mag.stat+=gain;
 		gain=2+gen.nextInt(3);
-			BASEMANA+=gain;mana+=gain;
+			mana.BASE+=gain;mana.stat+=gain;
 		return true;
 	}
 

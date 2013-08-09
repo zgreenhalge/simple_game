@@ -17,9 +17,10 @@ public class StatusEffect {
 		timer=t;
 	}
 	
-	public void age(){
+	public int age(){
 		if(timer>0)
 			timer--;
 		//DEFINE IN EACH EFFECT 
+		return timer;
 	}
 }
