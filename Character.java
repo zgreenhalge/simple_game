@@ -2,14 +2,14 @@ import java.util.*;
 
 public class Character{
 
-	private int wallet, level, exp;
+	private int wallet, level, exp, expMod;
 	private Store hp, mana, att, mag, def, spd, res;
-	private Store[] stats = new Store[7]; // hp, mana, att, mag, def, spd,
+	private Store[] stats = new Store[7]; // hp, mana, att, def, mag, res, spd
 	private ArrayList<StatusEffect> status = new ArrayList<StatusEffect>();
-	private ArrayList<Item> inventory = new ArrayList<Item>();
+	private Item[] inventory = new Item[6];
 	private Random gen;
 	private Ability[] abl;
-	private int[] expTable = {5,20,60,120,250}; //EXP REQUIRED TO LEVEL UP
+	private int[] expTable = {5,15,60,120,250,600}; //EXP REQUIRED TO LEVEL UP
 	private String charName, charClass;
 	
 	
@@ -32,6 +32,7 @@ public class Character{
 		abl[1] = new Defend(this);
 		abl[2] = new Throw(this);
 		abl[3] = new Rest(this);
+		expMod=2;
 	}
 	
 	//CONSTRUCTOR ALLOWING RANDOM NAMED CHARACTERS
@@ -42,9 +43,10 @@ public class Character{
 	}
 	
 	//ROBUST CHARACTER CONSTRUCTOR
-	public Character(String n, String c, int l, int e, int h, int mn, int a, int d, int m, int r, int s, Ability[] ab){
+	public Character(String n, String c, int w, int l, int e, int h, int mn, int a, int d, int m, int r, int s, int eg, ArrayList<StatusEffect> se, Item[] inv, Ability[] ab){
 		charName=n;
 		charClass=c;
+		wallet = w;
 		level=l;
 		exp=e;
 		hp = new Store(h);
@@ -55,7 +57,10 @@ public class Character{
 		mana = new Store(mn);
 		res = new Store(r);
 		gen = new Random(System.nanoTime());
+		expMod = eg;
 		abl=ab;
+		status=se;
+		inventory=inv;
 		updateStats();
 		abilityOwner();
 	}
@@ -287,6 +292,14 @@ public class Character{
 			exp=expTable[level-1];
 	return expTable[level-1]-exp;
 	}
+	
+	public void setExpMod(int i){
+		expMod = i;
+	}
+	
+	public int expReward(){
+		return (expMod*level)+1;
+	}
 
 	//HANDLES LEVEL UP LOGIC
 	//RETURNS FALSE IF MAX LEVEL
@@ -296,8 +309,9 @@ public class Character{
 		if(verbose){
 			//print out stat changes
 		}
-		level+=1;	
+		level++;	
 		exp=0;
+		expMod++;
 		int gain;
 		gain=2+gen.nextInt(4);
 			hp.BASE+=gain; hp.stat+=gain;
