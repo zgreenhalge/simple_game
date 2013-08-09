@@ -1,10 +1,10 @@
 import java.util.*;
+import java.lang.Math;
 
 public class Character{
 
 	private int wallet, level, exp, expMod;
 	private Store hp, mana, att, mag, def, spd, res;
-	private Store[] stats = new Store[7]; // hp, mana, att, def, mag, res, spd
 	private ArrayList<StatusEffect> status = new ArrayList<StatusEffect>();
 	private Item[] inventory = new Item[6];
 	private Random gen;
@@ -27,7 +27,6 @@ public class Character{
 		mag = new Store(1+gen.nextInt(8));
 		mana = new Store(10+gen.nextInt(6));
 		res = new Store(1+gen.nextInt(5));
-		updateStats();
 		abl[0] = new Attack(this);
 		abl[1] = new Defend(this);
 		abl[2] = new Throw(this);
@@ -61,39 +60,31 @@ public class Character{
 		abl=ab;
 		status=se;
 		inventory=inv;
-		updateStats();
-		abilityOwner();
-	}
-	
-	//PUTS ALL STATS INTO ARRAYS, CALLED IN CONSTRUCTOR
-	private void updateStats(){
-		stats[0]= hp;
-		stats[1]= mana;
-		stats[2]= att;
-		stats[3]= def;
-		stats[4]= mag;
-		stats[5]= res;
-		stats[6]= spd;
+		owner();
 	}
 	
 	//END OF TURN, RESPONSIBLE FOR AGING STATS
 	public boolean age(){
 		int regen= (int) (hp.BASE*0.05);
-		for(Store s: stats)
-			if(s.age()==0)
-				s.stat=s.BASE;
 		for(StatusEffect s: status)
-			s.age();
+			if(s.age()==0)
+				s=null;
 		if(hp.stat>0){
 			for(Item i: inventory)
 				if(i.affects().equals("HPregen"))
 					regen = i.effect(regen);
+			for(StatusEffect s: status)
+				if(s.affects().equals("HPregen"))
+					regen = s.effect(regen);
 			hp.stat += regen;
 		}
 		regen = (int) (mana.BASE*0.15);
 		for(Item i: inventory)
 				if(i.affects().equals("MPregen"))
 					regen = i.effect(regen);
+		for(StatusEffect s: status)
+			if(s.affects().equals("MPregen"))
+				regen = s.effect(regen);
 		mana.stat += regen;
 		if(mana.stat>getMAXMANA())
 			mana.stat=getMAXMANA();
@@ -138,16 +129,20 @@ public class Character{
 		
 	//ADD STATUS EFFECTS TO CHARACTER
 	public boolean addEffect(StatusEffect s){
-		if(status.contains(s))		//DISALLOWS STACKING OF EFFECTS
+		if(status.contains(s))		//DISALLOWS STACKING OF EFFECTS (?)
 			return false;
 		status.add(s);
 		return true;
 	}
 
-	//SETS CHARACTER AS OWNER OF ABILITES
-	public void abilityOwner(){
+	//SETS CHARACTER AS OWNER
+	public void owner(){
 		for(Ability a: abl)
 			a.setOwner(this);
+		for(StatusEffect s: status)
+			s.setOwner(this);
+		for(Item i: inventory)
+			i.setOwner(this);
 	}
 
 	//PUBLIC GETTER
@@ -156,6 +151,9 @@ public class Character{
 		for(Item i: inventory)
 			if(i.affects().equals("att"))
 				ret = i.effect(ret);
+		for(StatusEffect s: status)
+			if(s.affects().equals("att"))
+				ret = s.effect(ret);
 		return ret;
 	}
 
@@ -165,6 +163,9 @@ public class Character{
 		for(Item i: inventory)
 			if(i.affects().equals("def"))
 				ret = i.effect(ret);
+		for(StatusEffect s: status)
+			if(s.affects().equals("def"))
+				ret = s.effect(ret);
 		return ret;
 	}
 
@@ -174,6 +175,21 @@ public class Character{
 		for(Item i: inventory)
 			if(i.affects().equals("spd"))
 				ret = i.effect(ret);
+		for(StatusEffect s: status)
+			if(s.affects().equals("spd"))
+				ret = s.effect(ret);
+		return ret;
+	}
+	
+	//PUBLIC GETTER
+	public int getMagic(){
+		int ret = mag.stat;
+		for(Item i: inventory)
+			if(i.affects().equals("mag"))
+				ret = i.effect(ret);
+		for(StatusEffect s: status)
+			if(s.affects().equals("mag"))
+				ret = s.effect(ret);
 		return ret;
 	}
 	
@@ -183,7 +199,45 @@ public class Character{
 		for(Item i: inventory)
 			if(i.affects().equals("res"))
 				ret = i.effect(ret);
+		for(StatusEffect s: status)
+			if(s.affects().equals("res"))
+				ret = s.effect(ret);
 		return ret;
+	}
+
+	
+	//PUBLIC GETTER
+	public int getMAXHP(){
+		int ret = hp.BASE;
+		for(Item i: inventory)
+			if(i.affects().equals("MAXHP"))
+				ret = i.effect(ret);
+		for(StatusEffect s: status)
+			if(s.affects().equals("MAXHP"))
+				ret = s.effect(ret);
+		return ret;
+	}
+
+	//PUBLIC GETTER
+	public int getMAXMANA(){
+		int ret = mana.BASE;
+		for(Item i: inventory)
+			if(i.affects().equals("MAXMANA"))
+				ret = i.effect(ret);
+		for(StatusEffect s: status)
+			if(s.affects().equals("MAXMANA"))
+				ret = s.effect(ret);
+		return ret;
+	}
+	
+	//PUBLIC GETTER
+	public int getLevel(){
+		return level;
+	}
+
+	//PUBLIC GETTER
+	public int getMana(){
+		return mana.stat;
 	}
 
 	//PUBLIC GETTER
@@ -206,44 +260,6 @@ public class Character{
 		return hp.stat;
 	}
 	
-	//PUBLIC GETTER
-	public int getMAXHP(){
-		int ret = hp.BASE;
-		for(Item i: inventory)
-			if(i.affects().equals("MAXHP"))
-				ret = i.effect(ret);
-		return ret;
-	}
-
-	//PUBLIC GETTER
-	public int getLevel(){
-		return level;
-	}
-
-	//PUBLIC GETTER
-	public int getMagic(){
-		int ret = mag.stat;
-		for(Item i: inventory)
-			if(i.affects().equals("mag"))
-				ret = i.effect(ret);
-		return ret;
-	}
-
-	//PUBLIC GETTER
-	public int getMana(){
-		return mana.stat;
-	}
-
-	//PUBLIC GETTER
-	public int getMAXMANA(){
-		int ret = mana.BASE;
-		for(Item i: inventory)
-			if(i.affects().equals("MAXMANA"))
-				ret = i.effect(mana.BASE);
-		return ret;
-	}
-
-
 	//PUBLIC MODIFIER
 	public int modHP(int x){
 		hp.stat+=x;
@@ -270,6 +286,34 @@ public class Character{
 		if(mana.stat<0)
 			mana.stat=0;
 		return mana.stat;
+	}
+	
+	public Store getAttStore(){
+		return att;
+	}
+	
+	public Store getDefStore(){
+		return def;
+	}
+	
+	public Store getMagStore(){
+		return mag;
+	}
+	
+	public Store getResStore(){
+		return res;
+	}
+	
+	public Store getHPStore(){
+		return hp;
+	}
+	
+	public Store getManaStore(){
+		return mana;
+	}
+	
+	public Store getSpdStore(){
+		return spd;
 	}
 
 	//PUBLIC SETTER, WILL SCALE CHARACTER UP TO A CERTAIN LEVEL
@@ -298,7 +342,8 @@ public class Character{
 	}
 	
 	public int expReward(){
-		return (expMod*level)+1;
+		int ex = (int) (Math.log(expMod)/Math.log(2));
+		return (int) (Math.pow(level, ex))+1;
 	}
 
 	//HANDLES LEVEL UP LOGIC

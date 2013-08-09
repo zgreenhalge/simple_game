@@ -18,6 +18,10 @@ public class Item{
 		return i;
 	}
 	
+	public void setOwner(Character c){
+		owner=c;
+	}
+	
 	public String getName(){
 		return name;
 	}

@@ -39,7 +39,7 @@ public class Ability{
 
 	public void experience(Character c, boolean alive){
 		if(alive)
-			owner.gainExperience( (int) (owner.getReqExp()*.01) );
+			experience();
 		else{
 			if(c.getLevel()>owner.getLevel())
 				owner.gainExperience(c.expReward()+((int) ((c.getLevel()-owner.getLevel())*.5)));
