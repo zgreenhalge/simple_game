@@ -1,14 +1,18 @@
-public class Store{
+public class Struct{
 
 	public int BASE, stat;
 	
-	public Store(){		//A SIMPLE STRUCT FOR STATS
+	public Struct(){		//A SIMPLE STRUCT FOR STATS
 		this(0);		//BECAUSE FUCK JAVA
 	}
 	
-	public Store(int i){
+	public Struct(int i){
 		stat = BASE = i;
 	}
 
-		
+	public Struct(int s, int b){
+		stat=s;
+		base=b;
+	}
+	
 }

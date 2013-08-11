@@ -4,7 +4,7 @@ import java.lang.Math;
 public class Character{
 
 	private int wallet, level, exp, expMod;
-	private Store hp, mana, att, mag, def, spd, res;
+	private Struct hp, mana, att, mag, def, spd, res;
 	private ArrayList<StatusEffect> status = new ArrayList<StatusEffect>();
 	private Item[] inventory = new Item[6];
 	private Random gen;
@@ -20,13 +20,13 @@ public class Character{
 		level=1;
 		gen = new Random(System.nanoTime());
 		exp=0;
-		hp = new Store(20+gen.nextInt(11));
-		att = new Store(5+gen.nextInt(6));
-		def = new Store(1+gen.nextInt(5));
-		spd = new Store(1+gen.nextInt(5));
-		mag = new Store(1+gen.nextInt(8));
-		mana = new Store(10+gen.nextInt(6));
-		res = new Store(1+gen.nextInt(5));
+		hp = new Struct(20+gen.nextInt(11));
+		att = new Struct(5+gen.nextInt(6));
+		def = new Struct(1+gen.nextInt(5));
+		spd = new Struct(1+gen.nextInt(5));
+		mag = new Struct(1+gen.nextInt(8));
+		mana = new Struct(10+gen.nextInt(6));
+		res = new Struct(1+gen.nextInt(5));
 		abl[0] = new Attack(this);
 		abl[1] = new Defend(this);
 		abl[2] = new Throw(this);
@@ -48,13 +48,13 @@ public class Character{
 		wallet = w;
 		level=l;
 		exp=e;
-		hp = new Store(h);
-		att = new Store(a);
-		def = new Store(d);
-		spd = new Store(s);
-		mag = new Store(m);
-		mana = new Store(mn);
-		res = new Store(r);
+		hp = new Struct(h);
+		att = new Struct(a);
+		def = new Struct(d);
+		spd = new Struct(s);
+		mag = new Struct(m);
+		mana = new Struct(mn);
+		res = new Struct(r);
 		gen = new Random(System.nanoTime());
 		expMod = eg;
 		abl=ab;
@@ -288,31 +288,31 @@ public class Character{
 		return mana.stat;
 	}
 	
-	public Store getAttStore(){
+	public Struct getAttStruct(){
 		return att;
 	}
 	
-	public Store getDefStore(){
+	public Struct getDefStruct(){
 		return def;
 	}
 	
-	public Store getMagStore(){
+	public Struct getMagStruct(){
 		return mag;
 	}
 	
-	public Store getResStore(){
+	public Struct getResStruct(){
 		return res;
 	}
 	
-	public Store getHPStore(){
+	public Struct getHPStruct(){
 		return hp;
 	}
 	
-	public Store getManaStore(){
+	public Struct getManaStruct(){
 		return mana;
 	}
 	
-	public Store getSpdStore(){
+	public Struct getSpdStruct(){
 		return spd;
 	}
 

@@ -13,7 +13,7 @@ public class Defend extends Ability{
 	private class Defending extends StatusEffect{
 	
 		public Defending(Character o){
-			super(o, (int) (o.getDefStore().BASE*.5), 2);
+			super(o, (int) (o.getDefStruct().BASE*.5), 2);
 			affects="def";
 			name="Defending";
 			description="This unit is defending, increasing it's defense for a short period of time!";

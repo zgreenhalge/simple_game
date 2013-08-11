@@ -1,4 +1,4 @@
-simple_game
+ simple_game
 ===========
 
-Basic classes for a simple game
+Basic classes for a simple menu-based RPG
