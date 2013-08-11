@@ -12,7 +12,7 @@ public class Struct{
 
 	public Struct(int s, int b){
 		stat=s;
-		base=b;
+		BASE=b;
 	}
 	
 }
