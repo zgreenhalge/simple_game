@@ -1,4 +1,4 @@
  simple_game
 ===========
 
-Basic classes for a simple menu-based RPG
+Simple framework interfaces and classes for game development
